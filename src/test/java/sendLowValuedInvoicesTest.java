@@ -2,12 +2,14 @@ import org.example.Assignment.*;
 import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class sendLowValuedInvoicesTest {
     @Test
-    public void testWhenLowInvoicesSent() {
+    public void testWhenLowInvoicesSent() throws FailToSendSAPInvoiceException {
         // First I create a mock for both filter and sap
         FilterInvoice mockFilter = mock(FilterInvoice.class);
         SAP mockSap = mock(SAP.class);
@@ -25,7 +27,7 @@ public class sendLowValuedInvoicesTest {
         verify(mockSap).send(lowValueInvoice);
     }
     @Test
-    public void testWhenNoInvoices() {
+    public void testWhenNoInvoices() throws FailToSendSAPInvoiceException {
         // First I create a mock for both filter and sap
         FilterInvoice mockFilter = mock(FilterInvoice.class);
         SAP mockSap = mock(SAP.class);
@@ -34,11 +36,31 @@ public class sendLowValuedInvoicesTest {
         //is best for declaring that there are no invoices.
         when(mockFilter.lowValueInvoices()).thenReturn(Collections.emptyList());
         // I use my mocks for SAP_BasedInvoiceSender, so I can call on the method
-        SAP_BasedInvoiceSender sender = new SAP_BasedInvoiceSender(mockFilter, mockSap);
+        SAP_BasedInvoiceSender sapsender = new SAP_BasedInvoiceSender(mockFilter, mockSap);
         // Call the method with my mocks
-        sender.sendLowValuedInvoices();
+        sapsender.sendLowValuedInvoices();
         // then I verify that sap.send never occurred
         verify(mockSap, never()).send(any(Invoice.class));
+    }
+
+    @Test
+    public void testThrowExceptionWhenBadInvoice() {
+        // First I create a mock for both filter and sap
+        FilterInvoice mockFilter = mock(FilterInvoice.class);
+        SAP mockSap = mock(SAP.class);
+        // I create an invoice that is too large, so it will fail
+        Invoice invoice1 = new Invoice("1", 120);
+        // I stub a list calling the lowValueInvoices for my invoice
+        when(mockFilter.lowValueInvoices()).thenReturn(Arrays.asList(invoice1));
+        // Check that the exception gets thrown for this invoice with stubbing
+        doThrow(new FailToSendSAPInvoiceException()).when(mockSap).send(invoice1);
+        // I use my mocks for SAP_BasedInvoiceSender, so I can call on the method
+        SAP_BasedInvoiceSender sapsender = new SAP_BasedInvoiceSender(mockFilter, mockSap);
+        // Call the method with my mocks
+        List<Invoice> failedInvoices = sapsender.sendLowValuedInvoices();
+        //I assert that my failed invoice is in the correct failing list
+        assertEquals(invoice1, failedInvoices.get(0));
+
     }
 
 }
