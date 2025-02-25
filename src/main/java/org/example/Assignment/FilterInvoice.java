@@ -1,8 +1,11 @@
 package org.example.Assignment;
 
+import org.junit.Test;
+
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.assertTrue;
 
 public class FilterInvoice {
     QueryInvoicesDAO dao;
@@ -23,5 +26,13 @@ public class FilterInvoice {
             return all.stream()
                     .filter(invoice -> invoice.getValue() < 100)
                     .collect(toList());
+    }
+    @Test
+    public void fillerInvoiceTest() {
+        FilterInvoice filterInvoice = new FilterInvoice(); //instantiates the DAO
+        List<Invoice> lowValueInvoices = filterInvoice.lowValueInvoices(); //Calls the lowValueInvoices
+        for (Invoice invoice : lowValueInvoices) { //ensures that every invoice within the list is less than 100
+            assertTrue(invoice.getValue() < 100);
+        }
     }
 }
