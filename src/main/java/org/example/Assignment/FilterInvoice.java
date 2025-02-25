@@ -8,8 +8,8 @@ import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertTrue;
 
 public class FilterInvoice {
-    QueryInvoicesDAO dao;
-    Database db;
+    private QueryInvoicesDAO dao;
+    private Database db;
 
     // We want to stub the dao to avoid interacting with database, however it is hard to do so, since dao is initialized internally
     // we need some way to inject dependency which is a stub, so we don't interact with database explicitly
@@ -20,6 +20,11 @@ public class FilterInvoice {
         this.db = new Database();
         this.dao = new QueryInvoicesDAO(db);
     }
+    //setter injection
+    public void setDao(QueryInvoicesDAO dao) {
+        this.dao = dao;
+    }
+
     public List<Invoice> lowValueInvoices() {
             List<Invoice> all = dao.all();
 
@@ -28,7 +33,7 @@ public class FilterInvoice {
                     .collect(toList());
     }
     @Test
-    public void fillerInvoiceTest() {
+    public void filterInvoiceTest() {
         FilterInvoice filterInvoice = new FilterInvoice(); //instantiates the DAO
         List<Invoice> lowValueInvoices = filterInvoice.lowValueInvoices(); //Calls the lowValueInvoices
         for (Invoice invoice : lowValueInvoices) { //ensures that every invoice within the list is less than 100
